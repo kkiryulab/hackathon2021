@@ -1,0 +1,2 @@
+pipenv lock -r > requirements.txt
+でカレントディレクトリにrequirements.txtの作成ができます

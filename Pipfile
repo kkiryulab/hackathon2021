@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 flask = "*"
+azure-storage-blob = "*"
 
 [dev-packages]
 
