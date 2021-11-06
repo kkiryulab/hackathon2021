@@ -10,9 +10,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import datetime
 
 app = Flask(__name__)
 api = Api(app)
+
+base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/' 
 
 class Get(Resource):
     def get(self):
@@ -20,19 +23,23 @@ class Get(Resource):
 class Post(Resource):
     def post(self):
         json = request.get_json(force = True)
-        return { 'json_request': json }
+        texts = json["text"]
+        url = generate(texts)
+
+        return { 'URL': url }
 
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
 
-'''
-@app.route('/')
-def generate():
+def generate(texts):
 
     OUT_DIR = './'
 
-    target_text = 'これはテストです。'
-    target_file = 'output.m4a'	# mp3, ogg, m4a, wav いずれかのファイルパス
+    now = datetime.datetime.now()
+
+    target_text = texts
+    target_file = 'aitalk_' + now.strftime('%Y%m%d_%H%M%S') + '.m4a' # mp3, ogg, m4a, wav いずれかのファイルパス
+    # filename = './output/log_' + now.strftime('%Y%m%d_%H%M%S') + '.csv'
 
     # (2) AITalkWebAPIを使うためのインスタンス作成
     aitalk = AITalkWebAPI()
@@ -60,11 +67,11 @@ def generate():
     if not aitalk.save_to_file(OUT_DIR + target_file):
         print('failed to save', file=sys.stderr)
 
-    save()
+    save(target_file)
 
-    return "OK"
+    return base_url + target_file
 
-def save():
+def save(target_file):
 
     connect_str = "DefaultEndpointsProtocol=https;AccountName=hackathonkiryu;AccountKey=YcmbVD8yIYKd152BQwasa8hQTmlkyE0JrQoeWLeAJ4BFlQKZNTUrCve8icdLpdVnMn8pQZhkupnUsmaBiHsh5Q==;EndpointSuffix=core.windows.net"
 
@@ -73,15 +80,15 @@ def save():
     my_content_settings = ContentSettings(content_type="audio/x-m4a")
 
     container_name = "hackathon"
-    local_file_name = "sample4.m4a"
-    upload_file_path = "./output.m4a"
+    local_file_name = target_file
+    upload_file_path = './' + target_file
 
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=local_file_name)
 
     # Upload the created file
     with open(upload_file_path, "rb") as data:
         blob_client.upload_blob(data, overwrite=True, content_settings=my_content_settings)
-'''
+
 
 ## おまじない
 if __name__ == "__main__":
