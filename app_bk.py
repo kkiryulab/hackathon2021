@@ -1,5 +1,4 @@
 from flask import Flask, Blueprint, request, abort, jsonify
-from flask_restful import Api, Resource
 from aitalk_webapi_sample import AITalkWebAPI
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, ContentSettings
 
@@ -12,20 +11,7 @@ import urllib.request
 import uuid
 
 app = Flask(__name__)
-api = Api(app)
 
-class Get(Resource):
-    def get(self):
-        return { 'message': 'GET request OK.' }
-class Post(Resource):
-    def post(self):
-        json = request.get_json(force = True)
-        return { 'json_request': json }
-
-api.add_resource(Get, '/get')
-api.add_resource(Post, '/post')
-
-'''
 @app.route('/')
 def generate():
 
@@ -81,7 +67,6 @@ def save():
     # Upload the created file
     with open(upload_file_path, "rb") as data:
         blob_client.upload_blob(data, overwrite=True, content_settings=my_content_settings)
-'''
 
 ## おまじない
 if __name__ == "__main__":
