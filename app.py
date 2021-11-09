@@ -1,8 +1,19 @@
+# flask
 from flask import Flask, Blueprint, request, abort, jsonify
 from flask_restful import Api, Resource
+
+# aitalk
 from aitalk_webapi_sample import AITalkWebAPI
+
+# azure
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, ContentSettings
 
+# line
+from linebot import (LineBotApi, WebhookHandler)
+from linebot.exceptions import (InvalidSignatureError)
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage, AudioSendMessage, messages)
+
+# others
 import sys
 import os
 import sys
@@ -15,7 +26,7 @@ import datetime
 app = Flask(__name__)
 api = Api(app)
 
-
+# define HTTP methods
 class Get(Resource):
     def get(self):
         return { 'message': 'GET request OK.' }
@@ -34,6 +45,7 @@ class Post(Resource):
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
 
+# define functions
 def main(seat,out):
 
     # セリフの編集
@@ -46,6 +58,7 @@ def main(seat,out):
     url = save(targetfile)
 
     # LINE API 発射
+    line_api(url)
 
     return text, url
 
@@ -130,6 +143,17 @@ def save(target_file):
     url = base_url + target_file
 
     return url
+
+def line_api(url):
+    ACCESS_TOKEN = "6yDC2ej27bfgaCNMM/rQr94GFedrd+zP8aGVzNVERpE1E+lkrfbq2oyGxo1gdEDZvtJOof6q6jIxe5RYiZO2p4Iq/EuTbBY/Z6ZgNvj0FRZvluCgD4x0hgvKZUlZmzeMTtjNeP9sevpvJ3GBJotyWAdB04t89/1O/w1cDnyilFU="
+    # SECRET = "371190783e713365febb9ea691eaf2e6"
+
+    line_bot_api = LineBotApi(ACCESS_TOKEN)
+    # handler = WebhookHandler(SECRET)
+
+    messages = AudioSendMessage(url,duration=1)
+
+    line_bot_api.broadcast(messages)
 
 ## おまじない
 if __name__ == "__main__":
