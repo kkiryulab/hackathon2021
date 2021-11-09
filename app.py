@@ -23,13 +23,31 @@ class Get(Resource):
 class Post(Resource):
     def post(self):
         json = request.get_json(force = True)
-        texts = json["text"]
-        url = generate(texts)
+        seat = json["seat"]
+        out = json["out"]
 
-        return { 'URL': url }
+        main(seat,out)
+        # url = generate(texts)
+
+        # return { 'URL': url }
+        return {"seat": seat, "out": out }
 
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
+
+def main(seat,out):
+    if out == 1:
+        text = "朝日がでているよ、素晴らしい1日の始まりだね"
+    elif out == 2:
+        text = "いま、とても気持ちの良い時間だよ。外へ出てみないかい？"
+    elif out == 3:
+        text = "外がすごく爽やかだな〜"
+    elif out == 4:
+        text = "ゆうひがとてもきれいだよ、見に行こうよ" 
+    elif out == 5:
+        text = "ゆうひがきれいだよ" 
+    else:
+        pass
 
 def generate(texts):
 
