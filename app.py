@@ -15,7 +15,6 @@ import datetime
 app = Flask(__name__)
 api = Api(app)
 
-base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/' 
 
 class Get(Resource):
     def get(self):
@@ -26,36 +25,57 @@ class Post(Resource):
         seat = json["seat"]
         out = json["out"]
 
-        main(seat,out)
+        text, url = main(seat,out)
         # url = generate(texts)
 
         # return { 'URL': url }
-        return {"seat": seat, "out": out }
+        return {"out": out, "text": text, "url": url}
 
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
 
 def main(seat,out):
-    if out == 1:
-        text = "朝日がでているよ、素晴らしい1日の始まりだね"
-    elif out == 2:
+
+    # セリフの編集
+    text = edit(seat,out) 
+
+    # 音声生成
+    targetfile = generate(text)
+
+    # 音声保存
+    url = save(targetfile)
+
+    # LINE API 発射
+
+    return text, url
+
+def edit(seat,out):
+
+    text = None
+
+    # セリフの編集
+    if out == "1":
+        text = "朝日がでているよ!素晴らしい1日の始まりだね!"
+    elif out == "2":
         text = "いま、とても気持ちの良い時間だよ。外へ出てみないかい？"
-    elif out == 3:
-        text = "外がすごく爽やかだな〜"
-    elif out == 4:
-        text = "ゆうひがとてもきれいだよ、見に行こうよ" 
-    elif out == 5:
-        text = "ゆうひがきれいだよ" 
+    elif out == "3":
+        text = "外がすごく爽やかだよ？"
+    elif out == "4":
+        text = "夕日がとてもきれいだよ？見に行こうよ!" 
+    elif out == "5":
+        text = "夕日がきれいだよ!" 
     else:
         pass
 
-def generate(texts):
+    return text
+
+def generate(text):
 
     OUT_DIR = './'
 
     now = datetime.datetime.now()
 
-    target_text = texts
+    target_text = text
     target_file = 'aitalk_' + now.strftime('%Y%m%d_%H%M%S') + '.m4a' # mp3, ogg, m4a, wav いずれかのファイルパス
     # filename = './output/log_' + now.strftime('%Y%m%d_%H%M%S') + '.csv'
 
@@ -85,11 +105,11 @@ def generate(texts):
     if not aitalk.save_to_file(OUT_DIR + target_file):
         print('failed to save', file=sys.stderr)
 
-    save(target_file)
-
-    return base_url + target_file
+    return target_file
 
 def save(target_file):
+
+    base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/' 
 
     connect_str = "DefaultEndpointsProtocol=https;AccountName=hackathonkiryu;AccountKey=YcmbVD8yIYKd152BQwasa8hQTmlkyE0JrQoeWLeAJ4BFlQKZNTUrCve8icdLpdVnMn8pQZhkupnUsmaBiHsh5Q==;EndpointSuffix=core.windows.net"
 
@@ -107,6 +127,9 @@ def save(target_file):
     with open(upload_file_path, "rb") as data:
         blob_client.upload_blob(data, overwrite=True, content_settings=my_content_settings)
 
+    url = base_url + target_file
+
+    return url
 
 ## おまじない
 if __name__ == "__main__":
