@@ -22,6 +22,9 @@ import urllib.parse
 import urllib.request
 import uuid
 import datetime
+import requests
+import json
+import re
 
 app = Flask(__name__)
 api = Api(app)
@@ -37,10 +40,8 @@ class Post(Resource):
         out = json["out"]
 
         text, url = main(seat,out)
-        # url = generate(texts)
 
-        # return { 'URL': url }
-        return {"out": out, "text": text, "url": url}
+        return {"seat": seat, "out": out, "text": text, "url": url}
 
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
@@ -64,22 +65,40 @@ def main(seat,out):
 
 def edit(seat,out):
 
-    text = None
-
     # セリフの編集
-    if out == "1":
-        text = "朝日がでているよ!素晴らしい1日の始まりだね!"
-    elif out == "2":
+    if out == "1": #朝時間通知
+        text = "朝日がでているよ!素晴らしい1日の始まりだね!" 
+
+    elif out == "2": # おすすめ通知
         text = "いま、とても気持ちの良い時間だよ。外へ出てみないかい？"
-    elif out == "3":
+    
+    elif out == "3": # 日中通知
         text = "外がすごく爽やかだよ？"
-    elif out == "4":
+    
+    elif out == "4": # 夕焼け通知
         text = "夕日がとてもきれいだよ？見に行こうよ!" 
-    elif out == "5":
+    
+    elif out == "5": # 夕時間通知
         text = "夕日がきれいだよ!" 
+    
+    elif out == "6": # お天気ヘッドライン（大阪）
+        url = 'https://www.jma.go.jp/bosai/forecast/data/overview_forecast/270000.json'
+        response = requests.get(url)
+        body = json.loads(response.text)
+        headline = body["headlineText"]
+        result = re.sub(r'してください', 'してね', headline)
+        result = re.sub(r'なります', 'なるよ', result)
+        text = result
+        
+    else:
+        text = "" 
+    
+    # 長時間在席時のメッセージ追加
+    if seat == "1":
+        text = text + "お仕事頑張っていて偉いね。ひと段落ついたら休憩しよう！"
     else:
         pass
-
+    
     return text
 
 def generate(text):
@@ -103,6 +122,8 @@ def generate(text):
     # (3) インスタンスに指定したいパラメータをセット
     aitalk.text = target_text
     aitalk.speaker_name = 'yuzuru_emo'
+    # aitalk.speaker_name = 'aoi_emo'
+    # aitalk.speaker_name = 'akane_west_emo'
     aitalk.pitch = 0.9
     aitalk.range = 1.5
     aitalk.style = '{"j":"0.5"}'
