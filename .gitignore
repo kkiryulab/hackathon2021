@@ -1,3 +1,4 @@
 *.m4a
 Pipfile
 Pipfile.lock
+.DS_Store
