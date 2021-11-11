@@ -11,7 +11,7 @@ from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, C
 # line
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
-from linebot.models import (MessageEvent, TextMessage, TextSendMessage, AudioSendMessage, messages)
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage, AudioSendMessage, messages, ImageSendMessage, StickerSendMessage)
 
 # others
 import sys
@@ -38,19 +38,20 @@ class Post(Resource):
         json = request.get_json(force = True)
         seat = json["seat"]
         out = json["out"]
+        wind = json["wind"]
 
-        text, url = main(seat,out)
+        text, url = main(seat,out, wind)
 
-        return {"seat": seat, "out": out, "text": text, "url": url}
+        return {"seat": seat, "out": out, "text": text, "wind": wind, "url": url}
 
 api.add_resource(Get, '/get')
 api.add_resource(Post, '/post')
 
 # define functions
-def main(seat,out):
+def main(seat,out,wind):
 
     # セリフの編集
-    text = edit(seat,out) 
+    text = edit(seat,out,wind)
 
     # 音声生成
     targetfile = generate(text)
@@ -59,21 +60,27 @@ def main(seat,out):
     url = save(targetfile)
 
     # LINE API 発射
-    line_api(url)
+    line_api(url, text)
 
     return text, url
 
-def edit(seat,out):
+def edit(seat,out,wind):
 
     # セリフの編集
     if out == "1": #朝時間通知
-        text = "朝日がでているよ!素晴らしい1日の始まりだね!" 
+        if wind == "normal":
+            text = "朝日が出ていて、良い風が吹いてるよ!素晴らしい一日の始まりだね!"
+        else:
+            text = "朝日がでているよ!素晴らしい1日の始まりだね!"
 
     elif out == "2": # おすすめ通知
         text = "いま、とても気持ちの良い時間だよ。外へ出てみないかい？"
     
     elif out == "3": # 日中通知
-        text = "外がすごく爽やかだよ？"
+        if wind == "normal":
+            text = "良い風が吹いてるよ!爽やかな天気だよ!"
+        else:
+            text = "外がすごく爽やかだよ？"
     
     elif out == "4": # 夕焼け通知
         text = "夕日がとてもきれいだよ？見に行こうよ!" 
@@ -143,7 +150,7 @@ def generate(text):
 
 def save(target_file):
 
-    base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/' 
+    base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/'
 
     connect_str = "DefaultEndpointsProtocol=https;AccountName=hackathonkiryu;AccountKey=YcmbVD8yIYKd152BQwasa8hQTmlkyE0JrQoeWLeAJ4BFlQKZNTUrCve8icdLpdVnMn8pQZhkupnUsmaBiHsh5Q==;EndpointSuffix=core.windows.net"
 
@@ -165,16 +172,33 @@ def save(target_file):
 
     return url
 
-def line_api(url):
+def line_api(url, text):
     ACCESS_TOKEN = "6yDC2ej27bfgaCNMM/rQr94GFedrd+zP8aGVzNVERpE1E+lkrfbq2oyGxo1gdEDZvtJOof6q6jIxe5RYiZO2p4Iq/EuTbBY/Z6ZgNvj0FRZvluCgD4x0hgvKZUlZmzeMTtjNeP9sevpvJ3GBJotyWAdB04t89/1O/w1cDnyilFU="
     # SECRET = "371190783e713365febb9ea691eaf2e6"
 
     line_bot_api = LineBotApi(ACCESS_TOKEN)
     # handler = WebhookHandler(SECRET)
 
-    messages = AudioSendMessage(url,duration=1)
+    audio_messages = AudioSendMessage(url,duration=1)
+    text_messages = TextSendMessage(text)
+    image_message = ImageSendMessage(
+    #夕日の写真
+    original_content_url='https://hackathonkiryu.blob.core.windows.net/hackathon/IMG_0948.jpeg',
+    preview_image_url='https://hackathonkiryu.blob.core.windows.net/hackathon/IMG_0948.jpeg'
+    #取得した写真
+    # original_content_url='https://hack2021goudou.blob.core.windows.net/hackcont/camcap.jpg',
+    # preview_image_url='https://hack2021goudou.blob.core.windows.net/hackcont/camcap.jpg'
+)
+    sticker_message = StickerSendMessage(
+    package_id='446',
+    sticker_id='1988'
+)
+    line_bot_api.broadcast(audio_messages)
+    line_bot_api.broadcast(text_messages)
+    # line_bot_api.broadcast(text_message)
+    line_bot_api.broadcast(sticker_message)
+    line_bot_api.broadcast(image_message)
 
-    line_bot_api.broadcast(messages)
 
 ## おまじない
 if __name__ == "__main__":
