@@ -50,7 +50,7 @@ class AITalkWebAPI:
 
 	#  【通知されたものを指定してください】
 	ID = 'Happy-4-Hack-Day'	# ユーザ名(接続ID)
-	PW = 'Ht57e4y6'	# パスワード(接続パスワード)
+	PW = 'XXXXXXXX'	# パスワード(接続パスワード)
 
 
 	def __init__(self):
