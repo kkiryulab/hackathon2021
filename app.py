@@ -152,9 +152,9 @@ def save(target_file):
 
     base_url = 'https://hackathonkiryu.blob.core.windows.net/hackathon/'
 
-    connect_str = "DefaultEndpointsProtocol=https;AccountName=hackathonkiryu;AccountKey=YcmbVD8yIYKd152BQwasa8hQTmlkyE0JrQoeWLeAJ4BFlQKZNTUrCve8icdLpdVnMn8pQZhkupnUsmaBiHsh5Q==;EndpointSuffix=core.windows.net"
+    BLOB_CONNECT_STRING = os.environ['APPSETTING_BLOB_CONNECT_STRING']
 
-    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECT_STRING)
 
     my_content_settings = ContentSettings(content_type="audio/x-m4a")
 
@@ -173,11 +173,9 @@ def save(target_file):
     return url
 
 def line_api(url, text):
-    ACCESS_TOKEN = "6yDC2ej27bfgaCNMM/rQr94GFedrd+zP8aGVzNVERpE1E+lkrfbq2oyGxo1gdEDZvtJOof6q6jIxe5RYiZO2p4Iq/EuTbBY/Z6ZgNvj0FRZvluCgD4x0hgvKZUlZmzeMTtjNeP9sevpvJ3GBJotyWAdB04t89/1O/w1cDnyilFU="
-    # SECRET = "371190783e713365febb9ea691eaf2e6"
+    LINE_ACCESS_TOKEN = os.environ['APPSETTING_LINE_ACCESS_TOKEN']
 
-    line_bot_api = LineBotApi(ACCESS_TOKEN)
-    # handler = WebhookHandler(SECRET)
+    line_bot_api = LineBotApi(LINE_ACCESS_TOKEN)
 
     audio_messages = AudioSendMessage(url,duration=1)
     text_messages = TextSendMessage(text)
